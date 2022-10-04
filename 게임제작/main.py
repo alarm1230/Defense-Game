@@ -4,13 +4,40 @@ import sys
 from pygame.locals import *
 from time import sleep
 
+class AnimatedSprite(pygame.sprite.Sprite):
+
+    def __init__(self, position, size, image_path):
+        super(AnimatedSprite, self).__init__()
+
+        images = []
+        for image in image_path:
+            images.append(pygame.image.load(image))
+
+        # rect 만들기
+        self.rect = pygame.Rect(position, size)
+        # rect크기와 이미지 크기 맞추기
+        self.images = [pygame.transform.scale(image, size) for image in images]
+
+        # 캐릭터 첫번째 이미지
+        self.index = 0
+        self.image = self.images[self.index]
+
+    def update(self):
+
+        self.index += 1
+
+        if self.index >= len(self.images):
+            self.index = 0
+        self.image = self.images[self.index]
+
+
 
 class Game:
 
     def __init__(self):
         # 화면 크기 설정
-        self.width = 600
-        self.height = 400
+        self.width = 1200
+        self.height = 800
         self.window_size = (self.width, self.height)
 
         # 프레임 수 설정
@@ -27,8 +54,15 @@ class Game:
         self.clock = pygame.time.Clock()
 
         # 기타 설정들
-        self.font = pygame.font.Font("게임제작/아마도/LeeSeoyun.ttf", 70)
+        self.font = pygame.font.Font("./resources/fonts/LeeSeoyun.ttf", 70)
 
+        # 캐릭터 파일 경로
+        self.hero_path = "./resources/images/heros/"
+        self.hero_images = os.listdir(self.hero_path)
+        self.hero_path_list = [os.path.join(self.hero_path, hero) for hero in self.hero_images]
+
+
+        # 게임 화면 출력
         self.start_screen()
         self.screen_transition(reverse=True)
         self.main()
@@ -37,6 +71,12 @@ class Game:
     def main(self):
         self.running = True
 
+        
+
+        hero = AnimatedSprite(position=(100, 600), size=(200, 200), image_path=self.hero_path_list)
+
+        all_sprites = pygame.sprite.Group(hero)
+
         while self.running:
 
             for event in pygame.event.get(): # 발생한 입력 event 목록의 event마다 검사
@@ -44,18 +84,31 @@ class Game:
                     pygame.quit() # pygame을 종료한다
                     sys.exit() # 창을 닫는다
 
+                elif event.type == KEYDOWN:
+                    if event.type == K_LEFT:
+                        xpos -= 10 * self.fps
+                    if event.type == K_RIGHT:
+                        xpos += 10 * self.fps
+                    if event.type == K_UP:
+                        ypos -= 10 * self.fps
+                    if event.type == K_DOWN:
+                        ypos += 10 * self.fps
+
             self.window.fill((255, 255, 255))
 
+
+            all_sprites.update()
+            all_sprites.draw(self.window)
 
             pygame.display.update()
             self.clock.tick(self.fps)
 
     def start_screen(self):
-        background = pygame.image.load("게임제작/아마도/background1.webp")
+        background = pygame.image.load("./resources/images/backgrounds/JH_Background_1004.png")
         background = pygame.transform.scale(background, self.window_size)
 
         letz_start = "Press anywhere to start!!"
-        btn_font = pygame.font.Font("게임제작/아마도/LeeSeoyun.ttf", 20)
+        btn_font = pygame.font.Font("./resources/fonts/LeeSeoyun.ttf", 20)
         btn_color = (255, 255, 255)
 
         start_btn =  btn_font.render(letz_start, 1, btn_color)
