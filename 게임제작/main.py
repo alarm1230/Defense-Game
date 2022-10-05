@@ -9,6 +9,9 @@ class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, position, size, image_path):
         super(AnimatedSprite, self).__init__()
 
+        self.xpos = position[0]
+        self.ypos = position[1]
+
         images = []
         for image in image_path:
             images.append(pygame.image.load(image))
@@ -22,13 +25,24 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.index = 0
         self.image = self.images[self.index]
 
-    def update(self):
+    def update(self, speed=10):
 
-        self.index += 1
+        self.index += speed / 10
 
         if self.index >= len(self.images):
             self.index = 0
-        self.image = self.images[self.index]
+        self.image = self.images[int(self.index)]
+
+        self.rect.x = self.xpos
+        self.rect.y = self.ypos
+
+
+class Hero(AnimatedSprite):
+    def __init__(self, position, size, image_path):
+        super().__init__(position, size, image_path)
+
+    def update(self):
+        super().update(1)
 
 
 
@@ -73,7 +87,9 @@ class Game:
 
         
 
-        hero = AnimatedSprite(position=(100, 600), size=(200, 200), image_path=self.hero_path_list)
+        hero = Hero(position=(100, 600), size=(200, 200), image_path=self.hero_path_list)
+
+
 
         all_sprites = pygame.sprite.Group(hero)
 
@@ -84,17 +100,32 @@ class Game:
                     pygame.quit() # pygame을 종료한다
                     sys.exit() # 창을 닫는다
 
-                elif event.type == KEYDOWN:
-                    if event.type == K_LEFT:
-                        xpos -= 10 * self.fps
-                    if event.type == K_RIGHT:
-                        xpos += 10 * self.fps
-                    if event.type == K_UP:
-                        ypos -= 10 * self.fps
-                    if event.type == K_DOWN:
-                        ypos += 10 * self.fps
+                # elif event.type == KEYDOWN:
+                #     if event.key == K_LEFT:
+                #         hero.xpos -= 10
+                #     if event.key == K_RIGHT:
+                #         hero.xpos += 10
+                #     if event.key == K_UP:
+                #         hero.ypos -= 10
+                #     if event.key == K_DOWN:
+                #         hero.ypos += 10
+
+            keys = pygame.key.get_pressed()
+
+            if keys[K_UP]:
+                hero.ypos -= 10
+            if keys[K_DOWN]:
+                hero.ypos += 10
+            if keys[K_LEFT]:
+                hero.xpos -= 10
+            if keys[K_RIGHT]:
+                hero.xpos += 10
+
+            
 
             self.window.fill((255, 255, 255))
+
+            
 
 
             all_sprites.update()
